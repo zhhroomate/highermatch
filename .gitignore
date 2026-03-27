@@ -1,18 +1,67 @@
-# Build and Release Folders
-bin-debug/
-bin-release/
-[Oo]bj/
-[Bb]in/
+# OS / editor
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
 
-# Other files and folders
-.settings/
+# Environment / secrets
+.env
+.env.local
+.env.*.local
 
-# Executables
-*.swf
-*.air
-*.ipa
-*.apk
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.python-version
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
 
-# Project files, i.e. `.project`, `.actionScriptProperties` and `.flexProperties`
-# should NOT be excluded as they contain compiler settings and other important
-# information for Eclipse / Flash Builder.
+# Python virtualenvs
+.venv/
+venv/
+env/
+ENV/
+
+# Build / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# Logs / runtime files
+*.log
+logs/
+services/*/logs/
+services/*/uploads/
+*.pid
+
+# Frontend
+node_modules/
+frontend/*/node_modules/
+frontend/*/dist/
+frontend/*/build/
+frontend/*/.vite/
+frontend/*/.cache/
+frontend/*/coverage/
+
+# Test / generated artifacts
+docs/nlu_accuracy_tracking.csv
+coverage/
+
+# Misc caches
+.cache/
+tmp/
+temp/
