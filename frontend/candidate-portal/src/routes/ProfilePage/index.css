@@ -1,0 +1,305 @@
+/**
+ * HigherMatch™ Candidate Portal - Profile Page Styles
+ */
+
+.profile-page {
+  min-height: 100vh;
+  background: #f5f5f5;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* 完整度区域 */
+.completeness-section {
+  background: #fff;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.completeness-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #666;
+}
+
+.completeness-header span:last-child {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.completeness-tip {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: #999;
+}
+
+/* 简历上传引导 */
+.resume-guide {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, #e6f7ff 0%, #f0f7ff 100%);
+  padding: 16px;
+  margin: 0 12px 12px;
+  border-radius: 12px;
+}
+
+.guide-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.guide-title {
+  font-weight: 600;
+  color: #1890ff;
+}
+
+.guide-subtitle {
+  font-size: 12px;
+  color: #666;
+}
+
+/* 头像上传 */
+.avatar-uploader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.avatar-wrapper {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+}
+
+.avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f0f0;
+  color: #999;
+  font-size: 24px;
+}
+
+.avatar-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s;
+  color: #fff;
+  font-size: 20px;
+}
+
+.avatar-wrapper:hover .avatar-overlay {
+  opacity: 1;
+}
+
+.uploading-indicator {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #1890ff;
+}
+
+/* 教育经历项 */
+.education-item {
+  width: 100%;
+}
+
+.edu-school {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.edu-detail {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.edu-date {
+  font-size: 12px;
+  color: #999;
+}
+
+/* 工作经历项 */
+.work-item {
+  width: 100%;
+}
+
+.work-company {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.work-position {
+  font-size: 14px;
+  color: #1890ff;
+  margin-bottom: 4px;
+}
+
+.work-desc {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.work-date {
+  font-size: 12px;
+  color: #999;
+}
+
+/* 表单容器 */
+.form-container {
+  padding: 12px;
+  background: #fafafa;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #eee;
+}
+
+/* 技能区域 */
+.skills-section {
+  padding: 12px 0;
+}
+
+.skill-input-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.skill-input-row .adm-input-wrapper {
+  flex: 1;
+}
+
+.skills-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.skills-tags .adm-tag {
+  margin: 0;
+}
+
+.empty-tip {
+  text-align: center;
+  color: #999;
+  font-size: 13px;
+  padding: 20px 0;
+}
+
+/* PDF 上传弹窗 */
+.resume-upload-popup {
+  padding: 24px 16px;
+  text-align: center;
+}
+
+.resume-upload-popup h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  color: #333;
+}
+
+.resume-upload-popup .subtitle {
+  margin: 0 0 24px;
+  font-size: 13px;
+  color: #999;
+}
+
+.upload-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  border: 2px dashed #d9d9d9;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.upload-area:hover {
+  border-color: #1890ff;
+  background: #f0f7ff;
+}
+
+.upload-area p {
+  margin: 12px 0 4px;
+  color: #333;
+  font-size: 14px;
+}
+
+.upload-area span {
+  color: #999;
+  font-size: 12px;
+}
+
+.loading-tip {
+  margin-top: 16px;
+  color: #1890ff;
+  font-size: 14px;
+}
+
+/* 折叠面板样式 */
+.adm-collapse-panel-header {
+  background: #fff !important;
+}
+
+.adm-collapse-panel-content {
+  background: #fff !important;
+}
+
+/* 列表样式 */
+.adm-list {
+  --background-color: #fff;
+}
+
+.adm-list-item {
+  --padding-left: 0;
+}
+
+/* 安全区 */
+.safe-area-bottom {
+  height: env(safe-area-inset-bottom);
+  background: transparent;
+}
+
+/* 响应式 */
+@media (max-width: 375px) {
+  .completeness-section,
+  .resume-guide {
+    margin-left: 8px;
+    margin-right: 8px;
+  }
+}

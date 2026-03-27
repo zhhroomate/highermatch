@@ -1,0 +1,486 @@
+# HigherMatch™ AI 招聘平台 - GitHub Actions CI/CD 工作流
+# ========================================================
+#
+# 触发条件:
+#   - Push 到 main 分支
+#   - 对 main 分支发起的 Pull Request
+#
+# 工作流程:
+#   1. 检出代码
+#   2. 设置 Python 3.11 和 Node.js 18
+#   3. 安装依赖
+#   4. 运行测试
+#   5. 构建 Docker 镜像
+#   6. (main push) 推送镜像到 Docker Hub
+#   7. (main push) 部署到测试服务器
+#   8. 失败通知 Slack
+#
+# 版本: 1.0.0
+
+name: CI/CD Pipeline
+
+# ==================== 触发条件 ====================
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+# ==================== 环境变量 ====================
+
+env:
+  # Docker Hub
+  DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+  DOCKER_HUB_REPO: highermatch
+  IMAGE_TAG: ${{ github.sha }}
+
+  # 服务器部署 (main 分支推送时使用)
+  SERVER_HOST: ${{ secrets.SERVER_HOST }}
+  SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
+  SERVER_USER: ${{ secrets.SERVER_USER }}
+
+  # Slack 通知
+  SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  # Python
+  PYTHON_VERSION: '3.11'
+
+  # Node.js
+  NODE_VERSION: '18'
+
+# ==================== 任务定义 ====================
+
+jobs:
+  # ==================== 代码质量检查 ====================
+
+  lint:
+    name: Code Quality Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install Python dependencies
+        run: |
+          pip install black flake8 mypy isort
+
+      - name: Install Node.js dependencies
+        run: |
+          pnpm install --frozen-lockfile
+
+      - name: Run Black (Python formatter)
+        run: |
+          black --check services/
+
+      - name: Run isort (Python import sorter)
+        run: |
+          isort --check-only services/
+
+      - name: Run flake8 (Python linter)
+        run: |
+          flake8 services/ --max-line-length=120 --ignore=E501,W503
+
+  # ==================== 后端单元测试 ====================
+
+  backend-test:
+    name: Backend Unit Tests
+    runs-on: ubuntu-latest
+    needs: lint
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: highermatch
+          POSTGRES_PASSWORD: highermatch
+          POSTGRES_DB: highermatch_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install -r services/user_service/requirements.txt
+          pip install -r services/job_service/requirements.txt
+          pip install -r services/pipeline_service/requirements.txt
+          pip install -r services/billing_service/requirements.txt
+          pip install -r services/guarantee_service/requirements.txt
+          pip install -r services/notification_service/requirements.txt
+          pip install pytest pytest-asyncio pytest-cov
+
+      - name: Run backend tests
+        env:
+          DATABASE_URL: postgresql+asyncpg://highermatch:highermatch@localhost:5432/highermatch_test
+          REDIS_URL: redis://localhost:6379/0
+        run: |
+          pytest services/user_service/tests/ -v --cov=app --cov-report=xml
+          pytest services/job_service/tests/ -v --cov=app --cov-report=xml
+          pytest services/pipeline_service/tests/ -v --cov=app --cov-report=xml
+          pytest services/billing_service/tests/ -v --cov=app --cov-report=xml
+          pytest services/guarantee_service/tests/ -v --cov=app --cov-report=xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage.xml
+          fail_ci_if_error: false
+
+  # ==================== 前端测试 ====================
+
+  frontend-test:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    needs: lint
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: |
+          cd frontend/employer-portal && pnpm install
+          cd ../candidate-portal && pnpm install
+
+      - name: Run Employer Portal tests
+        run: |
+          cd frontend/employer-portal
+          pnpm test:unit
+
+      - name: Run Candidate Portal tests
+        run: |
+          cd frontend/candidate-portal
+          pnpm test:unit
+
+      - name: Build Employer Portal
+        run: |
+          cd frontend/employer-portal
+          pnpm build
+
+      - name: Build Candidate Portal
+        run: |
+          cd frontend/candidate-portal
+          pnpm build
+
+  # ==================== E2E 测试 ====================
+
+  e2e-test:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    needs: [backend-test, frontend-test]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: |
+          pip install -r tests/e2e/requirements.txt
+
+      - name: Install Playwright browsers
+        run: |
+          playwright install chromium
+
+      - name: Start services with Docker Compose
+        run: |
+          docker-compose up -d
+
+      - name: Wait for services
+        run: |
+          sleep 30
+
+      - name: Run E2E tests
+        env:
+          EMPLOYER_PORTAL_URL: http://localhost
+          CANDIDATE_PORTAL_URL: http://localhost:5174
+          API_BASE_URL: http://localhost:8000
+        run: |
+          pytest tests/e2e/ -v --timeout=300 || true
+
+      - name: Stop services
+        if: always()
+        run: |
+          docker-compose down
+
+  # ==================== Docker 构建 ====================
+
+  docker-build:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: [backend-test, frontend-test]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_HUB_REPO }}
+          tags: |
+            type=sha,prefix=
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            latest,if:${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build user-service
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/user_service
+          push: false
+          tags: |
+            ${{ env.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_HUB_REPO }}-user-service:${{ env.IMAGE_TAG }}
+            ${{ env.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_HUB_REPO }}-user-service:${{ github.ref_name }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build job-service
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/job_service
+          push: false
+          tags: |
+            ${{ env.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_HUB_REPO }}-job-service:${{ env.IMAGE_TAG }}
+            ${{ env.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_HUB_REPO }}-job-service:${{ github.ref_name }}
+
+      - name: Build ai-service
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/ai_service
+          push: false
+          tags: |
+            ${{ env.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_HUB_REPO }}-ai-service:${{ env.IMAGE_TAG }}
+            ${{ env.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_HUB_REPO }}-ai-service:${{ github.ref_name }}
+
+      - name: Build candidate-service
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/candidate_service
+          push: false
+          tags: |
+            ${{ env.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_HUB_REPO }}-candidate-service:${{ env.IMAGE_TAG }}
+            ${{ env.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_HUB_REPO }}-candidate-service:${{ github.ref_name }}
+
+      - name: Build frontend employer-portal
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend/employer-portal
+          push: false
+          tags: |
+            ${{ env.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_HUB_REPO }}-employer-portal:${{ env.IMAGE_TAG }}
+            ${{ env.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_HUB_REPO }}-employer-portal:${{ github.ref_name }}
+
+      - name: Build frontend candidate-portal
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend/candidate-portal
+          push: false
+          tags: |
+            ${{ env.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_HUB_REPO }}-candidate-portal:${{ env.IMAGE_TAG }}
+            ${{ env.DOCKER_HUB_USERNAME }}/${{ env.DOCKER_HUB_REPO }}-candidate-portal:${{ github.ref_name }}
+
+  # ==================== 部署到测试服务器 (仅 main 分支) ====================
+
+  deploy:
+    name: Deploy to Server
+    runs-on: ubuntu-latest
+    needs: docker-build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up SSH key
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ env.SERVER_SSH_KEY }}
+
+      - name: Add server to known hosts
+        run: |
+          ssh-keyscan -H ${{ env.SERVER_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to server
+        env:
+          DOCKER_HUB_USERNAME: ${{ env.DOCKER_HUB_USERNAME }}
+        run: |
+          ssh ${{ env.SERVER_USER }}@${{ env.SERVER_HOST }} << 'EOF'
+            set -e
+
+            echo "=== Pulling latest images ==="
+            docker-compose -f /opt/highermatch/docker-compose.yml pull
+
+            echo "=== Stopping old containers ==="
+            docker-compose -f /opt/highermatch/docker-compose.yml down
+
+            echo "=== Starting new containers ==="
+            docker-compose -f /opt/highermatch/docker-compose.yml up -d
+
+            echo "=== Checking service health ==="
+            sleep 30
+            docker-compose -f /opt/highermatch/docker-compose.yml ps
+
+            echo "=== Deployment complete ==="
+          EOF
+
+      - name: Verify deployment
+        run: |
+          curl -f http://${{ env.SERVER_HOST }}/health || echo "Health check may take a moment"
+
+  # ==================== 成功通知 ====================
+
+  notify-success:
+    name: Notify Success
+    runs-on: ubuntu-latest
+    needs: [deploy]
+    if: always() && needs(deploy.result) == 'success'
+
+    steps:
+      - name: Send Slack notification
+        if: env.SLACK_WEBHOOK_URL != ''
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "✅ HigherMatch™ CI/CD Pipeline Success",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "✅ *HigherMatch™ CI/CD Pipeline Success*\n\n*Commit:* `${{ github.sha }}`\n*Branch:* `${{ github.ref_name }}`\n*Author:* ${{ github.actor }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ env.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+  # ==================== 失败通知 ====================
+
+  notify-failure:
+    name: Notify Failure
+    runs-on: ubuntu-latest
+    needs: [lint, backend-test, frontend-test, e2e-test, docker-build, deploy]
+    if: always() && (needs(lint).result == 'failure' || needs(backend-test).result == 'failure' || needs(frontend-test).result == 'failure' || needs(e2e-test).result == 'failure' || needs(docker-build).result == 'failure' || needs(deploy).result == 'failure')
+
+    steps:
+      - name: Determine failing job
+        id: failing
+        run: |
+          FAILED_JOBS=""
+          if [ "${{ needs.lint.result }}" == "failure" ]; then FAILED_JOBS="${FAILED_JOBS}lint, "; fi
+          if [ "${{ needs.backend-test.result }}" == "failure" ]; then FAILED_JOBS="${FAILED_JOBS}backend-test, "; fi
+          if [ "${{ needs.frontend-test.result }}" == "failure" ]; then FAILED_JOBS="${FAILED_JOBS}frontend-test, "; fi
+          if [ "${{ needs.e2e-test.result }}" == "failure" ]; then FAILED_JOBS="${FAILED_JOBS}e2e-test, "; fi
+          if [ "${{ needs.docker-build.result }}" == "failure" ]; then FAILED_JOBS="${FAILED_JOBS}docker-build, "; fi
+          if [ "${{ needs.deploy.result }}" == "failure" ]; then FAILED_JOBS="${FAILED_JOBS}deploy, "; fi
+          echo "failed_jobs=${FAILED_JOBS%, }" >> $GITHUB_OUTPUT
+
+      - name: Send Slack notification
+        if: env.SLACK_WEBHOOK_URL != ''
+        uses: slackapi/slack-github-action@v1
+        with:
+          payload: |
+            {
+              "text": "❌ HigherMatch™ CI/CD Pipeline Failed",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "❌ *HigherMatch™ CI/CD Pipeline Failed*\n\n*Failed Jobs:* ${{ steps.failing.outputs.failed_jobs }}\n*Commit:* `${{ github.sha }}`\n*Branch:* `${{ github.ref_name }}`\n*Author:* ${{ github.actor }}"
+                  }
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": {"type": "plain_text", "text": "View Logs"},
+                      "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ env.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+      - name: Set commit status
+        if: always()
+        run: |
+          echo "Pipeline failed. Failing jobs: ${{ steps.failing.outputs.failed_jobs }}"

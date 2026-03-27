@@ -1,0 +1,21 @@
+# HigherMatch™ E2E Tests - Python Dependencies
+# =============================================
+
+# Playwright
+playwright>=1.41.0
+pytest-playwright>=0.4.4
+
+# Async testing
+pytest>=8.0.0
+pytest-asyncio>=0.23.0
+pytest-xdist>=3.5.0  # Parallel test execution
+pytest-cov>=4.1.0   # Coverage reporting
+pytest-timeout>=2.2.0
+
+# HTTP client for API testing
+aiohttp>=3.9.0
+httpx>=0.26.0
+
+# Utilities
+python-dotenv>=1.0.0
+pydantic>=2.6.0

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>发票生成通知 - HigherMatch</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1677ff;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+        .greeting {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 24px;
+        }
+        .invoice-box {
+            background-color: #fafafa;
+            border: 2px solid #1677ff;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 24px 0;
+        }
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px dashed #ddd;
+        }
+        .invoice-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1677ff;
+        }
+        .invoice-no {
+            font-size: 14px;
+            color: #666;
+        }
+        .invoice-details {
+            margin: 20px 0;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            color: #666;
+        }
+        .detail-value {
+            font-weight: 600;
+            color: #333;
+        }
+        .total-row {
+            background-color: #1677ff;
+            color: white;
+            padding: 16px;
+            border-radius: 8px;
+            margin-top: 16px;
+        }
+        .total-row .detail-label {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        .total-row .detail-value {
+            color: white;
+            font-size: 20px;
+        }
+        .guarantee-info {
+            background-color: #f6ffed;
+            border: 1px solid #b7eb8f;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 20px 0;
+        }
+        .guarantee-title {
+            font-weight: 600;
+            color: #52c41a;
+            margin-bottom: 8px;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #1677ff;
+            color: white;
+            text-decoration: none;
+            padding: 12px 32px;
+            border-radius: 6px;
+            font-weight: 600;
+            margin: 24px 8px 24px 0;
+        }
+        .cta-button:hover {
+            background-color: #4096ff;
+        }
+        .cta-button.secondary {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        .cta-button.secondary:hover {
+            background-color: #e0e0e0;
+        }
+        .footer {
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 2px solid #f0f0f0;
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+        }
+        .footer a {
+            color: #1677ff;
+            text-decoration: none;
+        }
+        .payment-info {
+            background-color: #fffbe6;
+            border: 1px solid #ffe58f;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 20px 0;
+        }
+        .payment-title {
+            font-weight: 600;
+            color: #faad14;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">HigherMatch</div>
+            <div class="subtitle">AI智能招聘平台 - 精准匹配人才</div>
+        </div>
+
+        <div class="greeting">
+            尊敬的 <strong>{{ employer_name }}</strong>，
+        </div>
+
+        <p>您的招聘服务发票已生成，感谢您对 HigherMatch 的信任与支持！</p>
+
+        <div class="invoice-box">
+            <div class="invoice-header">
+                <div class="invoice-title">发票</div>
+                <div class="invoice-no">{{ invoice_no }}</div>
+            </div>
+
+            <div class="invoice-details">
+                <div class="detail-row">
+                    <span class="detail-label">开票日期</span>
+                    <span class="detail-value">{{ invoice_date }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">企业名称</span>
+                    <span class="detail-value">{{ employer_name }}</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">服务内容</span>
+                    <span class="detail-value">AI智能招聘服务</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">基础服务费</span>
+                    <span class="detail-value">¥{{ base_fee|comma }}</span>
+                </div>
+                {% if urgent_premium > 0 %}
+                <div class="detail-row">
+                    <span class="detail-label">加急服务费 (+30%)</span>
+                    <span class="detail-value">¥{{ urgent_premium|comma }}</span>
+                </div>
+                {% endif %}
+                <div class="detail-row">
+                    <span class="detail-label">对应保障期</span>
+                    <span class="detail-value">{{ guarantee_start_date }} 至 {{ guarantee_expiry_date }}</span>
+                </div>
+                <div class="total-row">
+                    <div class="detail-row" style="border-bottom: none; padding: 0;">
+                        <span class="detail-label">应付金额</span>
+                        <span class="detail-value">¥{{ total_amount|comma }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="payment-info">
+            <div class="payment-title">付款信息</div>
+            <p style="margin: 8px 0; color: #666;">
+                请在 <strong>{{ due_date }}</strong> 前完成付款，以确保您的90天求职保障期按时生效。
+            </p>
+        </div>
+
+        <div class="guarantee-info">
+            <div class="guarantee-title">90天求职保障</div>
+            <p style="margin: 0; color: #666;">
+                付款成功后自动激活。保障期内，如果录用的候选人离职，我们将为您免费推荐一位同等水平的替代候选人。
+            </p>
+        </div>
+
+        <p style="text-align: center;">
+            <a href="{{ portal_url }}/employer/invoices/{{ invoice_id }}/pay" class="cta-button">
+                立即付款
+            </a>
+            <a href="{{ portal_url }}/employer/invoices" class="cta-button secondary">
+                查看发票列表
+            </a>
+        </p>
+
+        <p>如有任何问题，请联系您的专属客服顾问或发送邮件至 <a href="mailto:support@highermatch.com">support@highermatch.com</a></p>
+
+        <div class="footer">
+            <p>此邮件由 HigherMatch AI招聘平台 自动发送</p>
+            <p>
+                <a href="{{ portal_url }}">访问平台</a> |
+                <a href="{{ portal_url }}/unsubscribe">取消订阅</a>
+            </p>
+            <p>&copy; 2024 HigherMatch. 保留所有权利。</p>
+        </div>
+    </div>
+</body>
+</html>

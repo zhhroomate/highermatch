@@ -1,0 +1,132 @@
+[
+  {
+    "id": "S01",
+    "text": "3年Python工程师，成都",
+    "expected": {
+      "job_title": "Python工程师",
+      "skills": ["Python"],
+      "years_exp_min": 3,
+      "years_exp_max": 3,
+      "location": ["成都"],
+      "salary_min": null,
+      "salary_max": null
+    }
+  },
+  {
+    "id": "S02",
+    "text": "招高级Java后端，5年以上经验，北京海淀，40-60K",
+    "expected": {
+      "job_title": "Java后端工程师",
+      "skills": ["Java"],
+      "years_exp_min": 5,
+      "years_exp_max": null,
+      "location": ["北京"],
+      "salary_min": 40000,
+      "salary_max": 60000
+    }
+  },
+  {
+    "id": "S03",
+    "text": "上海招1-3年产品经理，熟悉B端SaaS",
+    "expected": {
+      "job_title": "产品经理",
+      "skills": ["SaaS"],
+      "years_exp_min": 1,
+      "years_exp_max": 3,
+      "location": ["上海"],
+      "salary_min": null,
+      "salary_max": null
+    }
+  },
+  {
+    "id": "S04",
+    "text": "深圳数据分析师，2年经验，熟练SQL和Power BI，15-25K",
+    "expected": {
+      "job_title": "数据分析师",
+      "skills": ["SQL", "Power BI"],
+      "years_exp_min": 2,
+      "years_exp_max": 2,
+      "location": ["深圳"],
+      "salary_min": 15000,
+      "salary_max": 25000
+    }
+  },
+  {
+    "id": "S05",
+    "text": "杭州算法工程师，机器学习/深度学习，3到5年，30-45K",
+    "expected": {
+      "job_title": "算法工程师",
+      "skills": ["机器学习", "深度学习"],
+      "years_exp_min": 3,
+      "years_exp_max": 5,
+      "location": ["杭州"],
+      "salary_min": 30000,
+      "salary_max": 45000
+    }
+  },
+  {
+    "id": "S06",
+    "text": "广州前端开发，React+TypeScript，2年以上",
+    "expected": {
+      "job_title": "前端开发工程师",
+      "skills": ["React", "TypeScript"],
+      "years_exp_min": 2,
+      "years_exp_max": null,
+      "location": ["广州"],
+      "salary_min": null,
+      "salary_max": null
+    }
+  },
+  {
+    "id": "S07",
+    "text": "远程DevOps工程师，Kubernetes Docker，5年，35K以上",
+    "expected": {
+      "job_title": "DevOps工程师",
+      "skills": ["Kubernetes", "Docker"],
+      "years_exp_min": 5,
+      "years_exp_max": 5,
+      "location": ["远程"],
+      "salary_min": 35000,
+      "salary_max": null
+    }
+  },
+  {
+    "id": "S08",
+    "text": "成都测试开发，Python自动化测试，3年，20-30K",
+    "expected": {
+      "job_title": "测试开发工程师",
+      "skills": ["Python", "自动化测试"],
+      "years_exp_min": 3,
+      "years_exp_max": 3,
+      "location": ["成都"],
+      "salary_min": 20000,
+      "salary_max": 30000
+    }
+  },
+  {
+    "id": "S09",
+    "text": "西安HRBP，4年招聘和员工关系经验",
+    "expected": {
+      "job_title": "HRBP",
+      "skills": ["招聘", "员工关系"],
+      "years_exp_min": 4,
+      "years_exp_max": 4,
+      "location": ["西安"],
+      "salary_min": null,
+      "salary_max": null
+    }
+  },
+  {
+    "id": "S10",
+    "text": "南京C++嵌入式工程师，STM32，2-4年，双休",
+    "expected": {
+      "job_title": "C++嵌入式工程师",
+      "skills": ["C++", "STM32"],
+      "years_exp_min": 2,
+      "years_exp_max": 4,
+      "location": ["南京"],
+      "salary_min": null,
+      "salary_max": null
+    }
+  }
+]

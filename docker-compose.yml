@@ -1,0 +1,684 @@
+# HigherMatch™ AI 招聘平台 - Docker Compose 开发环境配置
+# 版本: 1.0.1 (已更新端口规避冲突)
+
+name: highermatch
+
+services:
+  # ==================== API Gateway ====================
+  api-gateway:
+    image: nginx:1.25-alpine
+    container_name: highermatch-api-gateway
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      user-service:
+        condition: service_healthy
+      job-service:
+        condition: service_healthy
+      ai-service:
+        condition: service_healthy
+    networks:
+      - highermatch-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  # ==================== User Service ====================
+  user-service:
+    build:
+      context: ./services/user_service
+      dockerfile: Dockerfile
+    container_name: highermatch-user-service
+    ports:
+      - "8001:8001"
+    environment:
+      - SERVICE_NAME=user-service
+      - SERVICE_PORT=8001
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - JWT_ALGORITHM=${JWT_ALGORITHM}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    volumes:
+      - ./services/user_service:/app
+      - user-service-logs:/app/logs
+    networks:
+      - highermatch-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+    command: python -m uvicorn app.main:app --host 0.0.0.0 --port 8001
+
+  # ==================== Job Service ====================
+  job-service:
+    build:
+      context: ./services/job_service
+      dockerfile: Dockerfile
+    container_name: highermatch-job-service
+    ports:
+      - "8002:8002"
+    environment:
+      - SERVICE_NAME=job-service
+      - SERVICE_PORT=8002
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - QDRANT_URL=http://qdrant:6333
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - JWT_ALGORITHM=${JWT_ALGORITHM}
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+    volumes:
+      - ./services/job_service:/app
+      - ./shared:/app/shared
+      - job-service-logs:/app/logs
+    networks:
+      - highermatch-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+    command: python -m uvicorn app.main:app --host 0.0.0.0 --port 8002
+
+  # ==================== AI Service ====================
+  ai-service:
+    build:
+      context: ./services/ai_service
+      dockerfile: Dockerfile
+    container_name: highermatch-ai-service
+    ports:
+      - "8004:8004"
+    environment:
+      - SERVICE_NAME=ai-service
+      - SERVICE_PORT=8004
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - QDRANT_URL=http://qdrant:6333
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - JWT_ALGORITHM=${JWT_ALGORITHM}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+    volumes:
+      - ./services/ai_service:/app
+      - ai-service-logs:/app/logs
+    networks:
+      - highermatch-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+    command: python -m uvicorn app.main:app --host 0.0.0.0 --port 8004
+
+  pipeline-service:
+    build:
+      context: ./services/pipeline_service
+      dockerfile: ../../template/Dockerfile
+      args:
+        SERVICE_PORT: "8003"
+    container_name: highermatch-pipeline-service
+    ports:
+      - "8003:8003"
+    environment:
+      - SERVICE_NAME=pipeline-service
+      - SERVICE_PORT=8003
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - JWT_ALGORITHM=${JWT_ALGORITHM}
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    volumes:
+      - ./services/pipeline_service:/app
+      - ./shared:/app/shared:ro
+    networks:
+      - highermatch-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    command: python -m uvicorn app.main:app --host 0.0.0.0 --port 8003
+
+  matching-service:
+    build:
+      context: ./services/matching_service
+      dockerfile: ../../template/Dockerfile
+      args:
+        SERVICE_PORT: "8005"
+    container_name: highermatch-matching-service
+    ports:
+      - "8005:8005"
+    environment:
+      - SERVICE_NAME=matching-service
+      - SERVICE_PORT=8005
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - QDRANT_URL=http://qdrant:6333
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - CELERY_BROKER_URL=redis://:${REDIS_PASSWORD}@redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://:${REDIS_PASSWORD}@redis:6379/2
+      - KAFKA_TOPIC_JOB_PUBLISHED=job.published
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+    volumes:
+      - ./services/matching_service:/app
+      - ./shared:/app/shared:ro
+    networks:
+      - highermatch-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys, urllib.request; sys.exit(0 if urllib.request.urlopen('http://localhost:8005/health').status == 200 else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 45s
+    restart: unless-stopped
+    command: python -m uvicorn app.main:app --host 0.0.0.0 --port 8005
+
+  notification-service:
+    build:
+      context: ./services/notification_service
+      dockerfile: Dockerfile
+    container_name: highermatch-notification-service
+    ports:
+      - "8006:8006"
+    environment:
+      - SERVICE_NAME=notification-service
+      - SERVICE_PORT=8006
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - SMTP_HOST=${SMTP_HOST:-smtp.example.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-notifications@highermatch.com}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SMTP_FROM_NAME=${SMTP_FROM_NAME:-HigherMatch}
+      - SMTP_FROM_EMAIL=${SMTP_FROM_EMAIL:-notifications@highermatch.com}
+      - KAFKA_TOPICS=match.completed,invoice.generated,guarantee.created,claim.approved,claim.rejected
+    env_file:
+      - .env
+    depends_on:
+      kafka:
+        condition: service_healthy
+    volumes:
+      - ./services/notification_service:/app
+      - ./shared:/app/shared:ro
+    networks:
+      - highermatch-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys, urllib.request; sys.exit(0 if urllib.request.urlopen('http://localhost:8006/health').status == 200 else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    command: python -m uvicorn app.main:app --host 0.0.0.0 --port 8006
+
+  billing-service:
+    build:
+      context: ./services/billing_service
+      dockerfile: Dockerfile
+    container_name: highermatch-billing-service
+    ports:
+      - "8007:8007"
+    environment:
+      - SERVICE_NAME=billing-service
+      - SERVICE_PORT=8007
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - KAFKA_TOPIC_ONBOARDING_CONFIRMED=onboarding.confirmed
+      - KAFKA_TOPIC_INVOICE_PAID=invoice.paid
+      - PAYMENT_SECRET_KEY=${PAYMENT_SECRET_KEY:-mock_payment_secret_key_12345}
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    volumes:
+      - ./services/billing_service:/app
+      - ./shared:/app/shared:ro
+    networks:
+      - highermatch-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8007/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    command: python -m uvicorn app.main:app --host 0.0.0.0 --port 8007
+
+  guarantee-service:
+    build:
+      context: ./services/guarantee_service
+      dockerfile: Dockerfile
+    container_name: highermatch-guarantee-service
+    ports:
+      - "8008:8008"
+    environment:
+      - SERVICE_NAME=guarantee-service
+      - SERVICE_PORT=8008
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - KAFKA_TOPIC_INVOICE_PAID=invoice.paid
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    volumes:
+      - ./services/guarantee_service:/app
+      - ./shared:/app/shared:ro
+    networks:
+      - highermatch-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys, urllib.request; sys.exit(0 if urllib.request.urlopen('http://localhost:8008/health').status == 200 else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    command: python -m uvicorn app.main:app --host 0.0.0.0 --port 8008
+
+  candidate-service:
+    build:
+      context: ./services/candidate_service
+      dockerfile: ../../template/Dockerfile
+      args:
+        SERVICE_PORT: "8009"
+    container_name: highermatch-candidate-service
+    ports:
+      - "8009:8009"
+    environment:
+      - SERVICE_NAME=candidate-service
+      - SERVICE_PORT=8009
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - JWT_ALGORITHM=${JWT_ALGORITHM}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    volumes:
+      - ./services/candidate_service:/app
+      - ./shared:/app/shared:ro
+    networks:
+      - highermatch-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8009/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    command: python -m uvicorn app.main:app --host 0.0.0.0 --port 8009
+
+  embedding-service:
+    build:
+      context: ./services/embedding_service
+      dockerfile: ../../template/Dockerfile
+      args:
+        SERVICE_PORT: "8010"
+    container_name: highermatch-embedding-service
+    profiles:
+      - optional
+    ports:
+      - "8010:8010"
+    environment:
+      - SERVICE_NAME=embedding-service
+      - SERVICE_PORT=8010
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - QDRANT_URL=http://qdrant:6333
+      - QDRANT_COLLECTION_NAME=${QDRANT_COLLECTION_NAME}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - AI_EMBEDDING_MODEL=${AI_EMBEDDING_MODEL}
+    env_file:
+      - .env
+    depends_on:
+      redis:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+    volumes:
+      - ./services/embedding_service:/app
+      - ./shared:/app/shared:ro
+    networks:
+      - highermatch-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8010/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    command: python -m uvicorn app.main:app --host 0.0.0.0 --port 8010
+
+  verification-service:
+    build:
+      context: ./services/verification_service
+      dockerfile: ../../template/Dockerfile
+      args:
+        SERVICE_PORT: "8011"
+    container_name: highermatch-verification-service
+    profiles:
+      - optional
+    ports:
+      - "8011:8011"
+    environment:
+      - SERVICE_NAME=verification-service
+      - SERVICE_PORT=8011
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - KAFKA_TOPIC_CANDIDATE_UPDATED=candidate.updated
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    volumes:
+      - ./services/verification_service:/app
+      - ./shared:/app/shared:ro
+    networks:
+      - highermatch-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8011/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    command: python -m uvicorn app.main:app --host 0.0.0.0 --port 8011
+
+  advisor-service:
+    build:
+      context: ./services/advisor_service
+      dockerfile: ../../template/Dockerfile
+      args:
+        SERVICE_PORT: "8012"
+    container_name: highermatch-advisor-service
+    profiles:
+      - optional
+    ports:
+      - "8012:8012"
+    environment:
+      - SERVICE_NAME=advisor-service
+      - SERVICE_PORT=8012
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - JWT_ALGORITHM=${JWT_ALGORITHM}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./services/advisor_service:/app
+      - ./shared:/app/shared:ro
+    networks:
+      - highermatch-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8012/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    command: python -m uvicorn app.main:app --host 0.0.0.0 --port 8012
+
+  employer-portal:
+    build:
+      context: ./frontend/employer-portal
+      dockerfile: Dockerfile
+    container_name: highermatch-employer-portal
+    ports:
+      - "3080:80"
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    networks:
+      - highermatch-network
+    restart: unless-stopped
+
+  candidate-portal:
+    build:
+      context: ./frontend/candidate-portal
+      dockerfile: Dockerfile
+    container_name: highermatch-candidate-portal
+    ports:
+      - "3081:80"
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    networks:
+      - highermatch-network
+    restart: unless-stopped
+
+  # ==================== PostgreSQL ====================
+  postgres:
+    image: postgres:15-alpine
+    container_name: highermatch-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    networks:
+      - highermatch-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+  # ==================== Redis ====================
+  redis:
+    image: redis:7-alpine
+    container_name: highermatch-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis-data:/data
+    networks:
+      - highermatch-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  # ==================== Kafka (with Zookeeper) ====================
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: highermatch-zookeeper
+    environment:
+      - ZOOKEEPER_CLIENT_PORT=2181
+      - ZOOKEEPER_TICK_TIME=2000
+      - ZOOKEEPER_INIT_LIMIT=5
+      - ZOOKEEPER_SYNC_LIMIT=2
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper/data
+      - zookeeper-logs:/var/lib/zookeeper/log
+    networks:
+      - highermatch-network
+    healthcheck:
+      test: ["CMD-SHELL", "echo ruok | nc localhost 2181"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: highermatch-kafka
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      - KAFKA_BROKER_ID=1
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=1
+      - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1
+      - KAFKA_AUTO_CREATE_TOPICS_ENABLE=true
+      - KAFKA_LOG_RETENTION_HOURS=168
+      - KAFKA_LOG_SEGMENT_BYTES=1073741824
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    networks:
+      - highermatch-network
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+
+  # ==================== Qdrant Vector Database ====================
+  qdrant:
+    image: qdrant/qdrant:v1.7.0
+    container_name: highermatch-qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant-data:/qdrant/storage
+    networks:
+      - highermatch-network
+    healthcheck:
+      test: ["CMD", "sh", "-c", "test -f /qdrant/storage/raft_state.json"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+# ==================== Networks ====================
+networks:
+  highermatch-network:
+    driver: bridge
+    name: highermatch-network
+
+# ==================== Volumes ====================
+volumes:
+  postgres-data:
+    name: highermatch-postgres-data
+  redis-data:
+    name: highermatch-redis-data
+  kafka-data:
+    name: highermatch-kafka-data
+  zookeeper-data:
+    name: highermatch-zookeeper-data
+  zookeeper-logs:
+    name: highermatch-zookeeper-logs
+  qdrant-data:
+    name: highermatch-qdrant-data
+  user-service-logs:
+    name: highermatch-user-service-logs
+  job-service-logs:
+    name: highermatch-job-service-logs
+  ai-service-logs:
+    name: highermatch-ai-service-logs

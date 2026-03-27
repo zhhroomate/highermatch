@@ -1,0 +1,1 @@
+"""Candidate Service shared module."""

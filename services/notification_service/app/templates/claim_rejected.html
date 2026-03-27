@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>保障理赔审核结果 - HigherMatch</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1677ff;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+        .greeting {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 24px;
+        }
+        .rejected-badge {
+            display: inline-block;
+            background-color: #ff4d4f;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .claim-box {
+            background-color: #fafafa;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 24px 0;
+        }
+        .claim-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .claim-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .claim-no {
+            font-size: 14px;
+            color: #666;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .info-item {
+            padding: 12px;
+            background-color: #fff;
+            border-radius: 8px;
+        }
+        .info-label {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 4px;
+        }
+        .info-value {
+            font-weight: 600;
+            color: #333;
+        }
+        .reason-box {
+            background-color: #fff2f0;
+            border: 1px solid #ffccc7;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 20px 0;
+        }
+        .reason-title {
+            font-weight: 600;
+            color: #ff4d4f;
+            margin-bottom: 8px;
+        }
+        .reason-text {
+            color: #333;
+            margin: 0;
+        }
+        .info-note {
+            background-color: #fafafa;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 20px 0;
+        }
+        .info-note-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        .info-note ul {
+            margin: 0;
+            padding-left: 20px;
+            color: #666;
+        }
+        .info-note li {
+            margin: 4px 0;
+        }
+        .contact-box {
+            background-color: #f6ffed;
+            border: 1px solid #b7eb8f;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 20px 0;
+        }
+        .contact-title {
+            font-weight: 600;
+            color: #52c41a;
+            margin-bottom: 8px;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #1677ff;
+            color: white;
+            text-decoration: none;
+            padding: 12px 32px;
+            border-radius: 6px;
+            font-weight: 600;
+            margin: 24px 8px 24px 0;
+        }
+        .cta-button.secondary {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        .footer {
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 2px solid #f0f0f0;
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+        }
+        .footer a {
+            color: #1677ff;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">HigherMatch</div>
+            <div class="subtitle">AI智能招聘平台 - 精准匹配人才</div>
+        </div>
+
+        <div class="greeting">
+            尊敬的 <strong>{{ employer_name }}</strong>，
+        </div>
+
+        <div class="rejected-badge">理赔申请未通过</div>
+
+        <p>感谢您对 HigherMatch 的支持。关于您提交的保障理赔申请，我们已完成审核。</p>
+
+        <div class="claim-box">
+            <div class="claim-header">
+                <div class="claim-title">理赔详情</div>
+                <div class="claim-no">编号：{{ claim_no }}</div>
+            </div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">原候选人</div>
+                    <div class="info-value">{{ original_candidate_name }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">理赔原因</div>
+                    <div class="info-value">{{ leaving_reason_display }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">申请日期</div>
+                    <div class="info-value">{{ claim_date }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">审核日期</div>
+                    <div class="info-value">{{ review_date }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="reason-box">
+            <div class="reason-title">未通过原因</div>
+            <p class="reason-text">{{ rejection_reason }}</p>
+        </div>
+
+        <div class="info-note">
+            <div class="info-note-title">保障理赔申请条件说明</div>
+            <ul>
+                <li>候选人需在保障期内（90天）正式入职</li>
+                <li>需提供有效的离职证明和辞职信</li>
+                <li>非因候选人个人原因（如严重违纪、违法犯罪）导致的离职</li>
+                <li>保障状态需为有效（未过期、未已使用）</li>
+            </ul>
+        </div>
+
+        <div class="contact-box">
+            <div class="contact-title">需要帮助？</div>
+            <p style="margin: 8px 0; color: #666;">
+                如果您对审核结果有疑问，欢迎联系您的专属客服顾问。
+            </p>
+        </div>
+
+        <p style="text-align: center;">
+            <a href="{{ portal_url }}/employer/claims/{{ claim_id }}" class="cta-button">
+                查看详情
+            </a>
+            <a href="{{ portal_url }}/employer/guarantees/{{ guarantee_id }}" class="cta-button secondary">
+                查看保障详情
+            </a>
+        </p>
+
+        <p>如有任何问题，请联系您的专属客服顾问或发送邮件至 <a href="mailto:support@highermatch.com">support@highermatch.com</a></p>
+
+        <div class="footer">
+            <p>此邮件由 HigherMatch AI招聘平台 自动发送</p>
+            <p>
+                <a href="{{ portal_url }}">访问平台</a> |
+                <a href="{{ portal_url }}/unsubscribe">取消订阅</a>
+            </p>
+            <p>&copy; 2024 HigherMatch. 保留所有权利。</p>
+        </div>
+    </div>
+</body>
+</html>

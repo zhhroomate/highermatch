@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>保障理赔已通过 - HigherMatch</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1677ff;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+        .greeting {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 24px;
+        }
+        .success-badge {
+            display: inline-block;
+            background-color: #52c41a;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        .claim-box {
+            background-color: #fafafa;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 24px 0;
+        }
+        .claim-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .claim-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .claim-no {
+            font-size: 14px;
+            color: #666;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .info-item {
+            padding: 12px;
+            background-color: #fff;
+            border-radius: 8px;
+        }
+        .info-label {
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 4px;
+        }
+        .info-value {
+            font-weight: 600;
+            color: #333;
+        }
+        .next-steps {
+            background-color: #f6ffed;
+            border: 1px solid #b7eb8f;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 24px 0;
+        }
+        .next-steps-title {
+            font-weight: 600;
+            color: #52c41a;
+            margin-bottom: 12px;
+        }
+        .step-item {
+            display: flex;
+            align-items: flex-start;
+            padding: 8px 0;
+        }
+        .step-number {
+            width: 24px;
+            height: 24px;
+            background-color: #52c41a;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        .step-text {
+            color: #333;
+        }
+        .candidate-section {
+            background-color: #e6f4ff;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 20px 0;
+        }
+        .candidate-title {
+            font-weight: 600;
+            color: #1677ff;
+            margin-bottom: 8px;
+        }
+        .cta-button {
+            display: inline-block;
+            background-color: #1677ff;
+            color: white;
+            text-decoration: none;
+            padding: 12px 32px;
+            border-radius: 6px;
+            font-weight: 600;
+            margin: 24px 8px 24px 0;
+        }
+        .footer {
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 2px solid #f0f0f0;
+            text-align: center;
+            color: #999;
+            font-size: 12px;
+        }
+        .footer a {
+            color: #1677ff;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">HigherMatch</div>
+            <div class="subtitle">AI智能招聘平台 - 精准匹配人才</div>
+        </div>
+
+        <div class="greeting">
+            尊敬的 <strong>{{ employer_name }}</strong>，
+        </div>
+
+        <div class="success-badge">理赔申请已通过</div>
+
+        <p>我们很高兴地通知您，您的保障理赔申请已审核通过！</p>
+
+        <div class="claim-box">
+            <div class="claim-header">
+                <div class="claim-title">理赔详情</div>
+                <div class="claim-no">编号：{{ claim_no }}</div>
+            </div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">原候选人</div>
+                    <div class="info-value">{{ original_candidate_name }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">理赔原因</div>
+                    <div class="info-value">{{ leaving_reason_display }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">申请日期</div>
+                    <div class="info-value">{{ claim_date }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">审核日期</div>
+                    <div class="info-value">{{ review_date }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="next-steps">
+            <div class="next-steps-title">下一步操作</div>
+            <div class="step-item">
+                <div class="step-number">1</div>
+                <div class="step-text">我们的AI系统正在为您筛选匹配候选人</div>
+            </div>
+            <div class="step-item">
+                <div class="step-number">2</div>
+                <div class="step-text">筛选完成后，客服顾问将与您联系</div>
+            </div>
+            <div class="step-item">
+                <div class="step-number">3</div>
+                <div class="step-text">您可以预览候选人并进行面试安排</div>
+            </div>
+        </div>
+
+        {% if replacement_candidate %}
+        <div class="candidate-section">
+            <div class="candidate-title">推荐候选人</div>
+            <p style="margin: 8px 0;"><strong>{{ replacement_candidate.name }}</strong></p>
+            <p style="margin: 4px 0; color: #666;">匹配度：{{ replacement_candidate.match_score }}%</p>
+            <p style="margin: 4px 0; color: #666;">{{ replacement_candidate.highlights|join('、') }}</p>
+        </div>
+        {% else %}
+        <p>我们正在加紧为您匹配最合适的候选人，预计将在 <strong>{{ estimated_match_date }}</strong> 前完成初筛。</p>
+        {% endif %}
+
+        <p style="text-align: center;">
+            <a href="{{ portal_url }}/employer/claims/{{ claim_id }}" class="cta-button">
+                查看理赔详情
+            </a>
+            <a href="{{ portal_url }}/employer/dashboard" class="cta-button" style="background-color: #f0f0f0; color: #333;">
+                返回工作台
+            </a>
+        </p>
+
+        <p>如有任何问题，请联系您的专属客服顾问或发送邮件至 <a href="mailto:support@highermatch.com">support@highermatch.com</a></p>
+
+        <div class="footer">
+            <p>此邮件由 HigherMatch AI招聘平台 自动发送</p>
+            <p>
+                <a href="{{ portal_url }}">访问平台</a> |
+                <a href="{{ portal_url }}/unsubscribe">取消订阅</a>
+            </p>
+            <p>&copy; 2024 HigherMatch. 保留所有权利。</p>
+        </div>
+    </div>
+</body>
+</html>

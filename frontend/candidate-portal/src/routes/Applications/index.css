@@ -1,0 +1,350 @@
+/* HigherMatch™ Candidate Portal - 申请追踪页面样式 */
+
+.applications-page {
+  min-height: 100vh;
+  background: #f5f5f5;
+  padding-bottom: 20px;
+}
+
+/* 页面头部 */
+.applications-page .page-header {
+  padding: 16px;
+  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+  color: #fff;
+}
+
+.applications-page .page-header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+}
+
+.applications-page .header-tip {
+  font-size: 13px;
+  opacity: 0.85;
+  margin: 0;
+}
+
+/* 统计卡片 */
+.stats-section {
+  display: flex;
+  gap: 8px;
+  padding: 16px;
+  background: #fff;
+  margin-bottom: 12px;
+}
+
+.stat-card {
+  flex: 1;
+  text-align: center;
+  padding: 12px 8px;
+  background: #fafafa;
+  border-radius: 8px;
+}
+
+.stat-card.highlight {
+  background: linear-gradient(135deg, #52c41a 0%, #389e0d 100%);
+}
+
+.stat-card.highlight .stat-value,
+.stat-card.highlight .stat-label {
+  color: #fff;
+}
+
+.stat-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.2;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: #999;
+  margin-top: 4px;
+}
+
+/* 筛选标签 */
+.filter-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 0 16px 16px;
+  background: #fff;
+}
+
+.tab-item {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  color: #666;
+  background: #f5f5f5;
+  transition: all 0.3s;
+}
+
+.tab-item.active {
+  background: #1890ff;
+  color: #fff;
+}
+
+/* 申请列表 */
+.applications-list {
+  padding: 0 16px;
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px 0;
+  color: #999;
+}
+
+/* 申请卡片 */
+.application-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.card-info {
+  flex: 1;
+}
+
+.card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.job-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.status-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+}
+
+.company-info {
+  font-size: 13px;
+  color: #666;
+  margin: 0 0 8px 0;
+}
+
+.salary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.salary {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ff6b00;
+}
+
+.applied-time {
+  font-size: 11px;
+  color: #999;
+}
+
+.expand-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  color: #999;
+  transition: transform 0.3s;
+}
+
+.expand-icon.expanded {
+  transform: rotate(180deg);
+}
+
+/* 进度指示器 */
+.progress-indicator {
+  display: flex;
+  justify-content: space-between;
+  margin: 16px 0;
+  padding: 12px 0;
+  position: relative;
+}
+
+.progress-indicator::before {
+  content: '';
+  position: absolute;
+  top: 28px;
+  left: 24px;
+  right: 24px;
+  height: 2px;
+  background: #e5e5e5;
+}
+
+.progress-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+  z-index: 1;
+}
+
+.step-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid #e5e5e5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: #999;
+  transition: all 0.3s;
+}
+
+.progress-step.active .step-dot {
+  border-color: var(--step-color, #1890ff);
+  background: var(--step-color, #1890ff);
+  color: #fff;
+}
+
+.progress-step.current .step-dot {
+  width: 32px;
+  height: 32px;
+  font-size: 14px;
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
+}
+
+.step-label {
+  font-size: 10px;
+  color: #999;
+  white-space: nowrap;
+}
+
+.progress-step.active .step-label {
+  color: var(--step-color, #1890ff);
+  font-weight: 600;
+}
+
+/* 时间线 */
+.timeline-section {
+  padding-top: 16px;
+  border-top: 1px solid #eee;
+}
+
+.timeline-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin-bottom: 16px;
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  padding-left: 8px;
+}
+
+.timeline-node {
+  display: flex;
+  position: relative;
+  padding-left: 24px;
+}
+
+.node-line {
+  position: absolute;
+  left: 11px;
+  width: 2px;
+}
+
+.node-line.top-line {
+  top: 0;
+  height: 12px;
+}
+
+.node-line.bottom-line {
+  top: 28px;
+  bottom: -20px;
+}
+
+.line-fill {
+  width: 100%;
+  height: 100%;
+  background: #ddd;
+}
+
+.node-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  position: absolute;
+  left: 0;
+  top: 6px;
+  background: #fff;
+  z-index: 1;
+}
+
+.node-content {
+  padding-left: 12px;
+  padding-bottom: 20px;
+  flex: 1;
+}
+
+.node-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.node-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+.node-time {
+  font-size: 11px;
+  color: #999;
+}
+
+.node-desc {
+  font-size: 12px;
+  color: #666;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.timeline-node.active .node-title {
+  font-weight: 600;
+}
+
+/* Empty 组件样式 */
+.adm-empty {
+  --background-color: #fff;
+}

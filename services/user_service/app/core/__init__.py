@@ -1,0 +1,41 @@
+"""Core module initialization"""
+
+from app.core.security import (
+    PasswordHasher,
+    PhoneEncryptor,
+    JWTManager,
+    LoginRateLimiter,
+    hash_password,
+    verify_password,
+    encrypt_phone,
+    decrypt_phone,
+    hash_phone,
+    init_jwt_manager,
+    get_jwt_manager,
+    create_access_token,
+    create_refresh_token,
+    verify_access_token,
+    verify_refresh_token,
+    generate_verification_code,
+    generate_api_key,
+)
+
+__all__ = [
+    "PasswordHasher",
+    "PhoneEncryptor",
+    "JWTManager",
+    "LoginRateLimiter",
+    "hash_password",
+    "verify_password",
+    "encrypt_phone",
+    "decrypt_phone",
+    "hash_phone",
+    "init_jwt_manager",
+    "get_jwt_manager",
+    "create_access_token",
+    "create_refresh_token",
+    "verify_access_token",
+    "verify_refresh_token",
+    "generate_verification_code",
+    "generate_api_key",
+]
