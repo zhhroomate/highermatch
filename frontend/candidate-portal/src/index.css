@@ -153,19 +153,47 @@
   --hm-gray-900: #171717;
   --hm-accent: #0A0A0A;
   --hm-accent-soft: #F5F5F5;
-  --hm-success: #22C55E;
+  
+  /* ── 精选色彩系统 ── */
+  --hm-success: #10B981;
+  --hm-success-light: #F0FDF4;
+  --hm-success-dark: #059669;
   --hm-warning: #F59E0B;
+  --hm-warning-light: #FFFBEB;
+  --hm-warning-dark: #D97706;
   --hm-error: #EF4444;
+  --hm-error-light: #FEF2F2;
+  --hm-error-dark: #DC2626;
+  --hm-info: #3B82F6;
+  --hm-info-light: #EFF6FF;
+  --hm-info-dark: #1D4ED8;
+  --hm-brand: #8B5CF6;
+  --hm-brand-light: #F3E8FF;
+  --hm-brand-dark: #6D28D9;
+  --hm-accent-pink: #EC4899;
+  --hm-accent-pink-light: #FCE7F3;
+  --hm-accent-pink-dark: #BE185D;
+  --hm-accent-cyan: #06B6D4;
+  --hm-accent-cyan-light: #ECFDF5;
+  --hm-accent-cyan-dark: #0891B2;
   --hm-radius: 12px;
   --hm-radius-sm: 8px;
+  --hm-radius-md: 12px;
   --hm-radius-lg: 16px;
   --hm-radius-xl: 20px;
   --hm-radius-full: 9999px;
+  
+  /* ── 分层背景 ── */
+  --hm-bg-layer-0: #FAFAFA;
+  --hm-bg-layer-1: #F3F3F3;
+  --hm-bg-layer-2: #ECECEC;
   --hm-shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
   --hm-shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
   --hm-shadow-md: 0 4px 16px rgba(0,0,0,0.08);
   --hm-shadow-lg: 0 8px 32px rgba(0,0,0,0.1);
   --hm-shadow-xl: 0 16px 48px rgba(0,0,0,0.12);
+  --hm-shadow-color: 0 4px 12px rgba(0,0,0,0.06);
+  --hm-shadow-color-sm: 0 2px 8px rgba(0,0,0,0.04);
   --hm-transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   --hm-nav-h: 64px;
   --hm-bottom-h: 72px;
@@ -327,9 +355,12 @@ body {
 .hm-tag-dark { background: var(--hm-black); color: var(--hm-white); }
 .hm-tag-light { background: var(--hm-gray-100); color: var(--hm-gray-700); }
 .hm-tag-outline { background: transparent; border: 1px solid var(--hm-gray-200); color: var(--hm-gray-600); }
-.hm-tag-success { background: #F0FDF4; color: #16A34A; }
-.hm-tag-warning { background: #FFFBEB; color: #D97706; }
-.hm-tag-error { background: #FEF2F2; color: #DC2626; }
+.hm-tag-success { background: var(--hm-success-light); color: var(--hm-success-dark); border: 1px solid rgba(16, 185, 129, 0.2); }
+.hm-tag-warning { background: var(--hm-warning-light); color: var(--hm-warning-dark); border: 1px solid rgba(245, 158, 11, 0.2); }
+.hm-tag-error { background: var(--hm-error-light); color: var(--hm-error-dark); border: 1px solid rgba(239, 68, 68, 0.2); }
+.hm-tag-info { background: var(--hm-info-light); color: var(--hm-info-dark); border: 1px solid rgba(59, 130, 246, 0.2); }
+.hm-tag-brand { background: var(--hm-brand-light); color: var(--hm-brand-dark); border: 1px solid rgba(139, 92, 246, 0.2); }
+.hm-tag-pink { background: var(--hm-accent-pink-light); color: var(--hm-accent-pink-dark); border: 1px solid rgba(236, 72, 153, 0.2); }
 
 /* ── 输入框 ── */
 .hm-input {
@@ -376,8 +407,11 @@ body {
 }
 
 /* ── 进度条 ── */
-.hm-progress { height: 4px; border-radius: 2px; background: var(--hm-gray-100); overflow: hidden; }
-.hm-progress-fill { height: 100%; border-radius: 2px; background: var(--hm-black); transition: width 0.6s ease; }
+.hm-progress { height: 6px; border-radius: 3px; background: var(--hm-gray-100); overflow: hidden; }
+.hm-progress-fill { height: 100%; border-radius: 3px; background: var(--hm-success); transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 8px rgba(16, 185, 129, 0.3); }
+.hm-progress.hm-progress-warning .hm-progress-fill { background: var(--hm-warning); box-shadow: 0 0 8px rgba(245, 158, 11, 0.3); }
+.hm-progress.hm-progress-error .hm-progress-fill { background: var(--hm-error); box-shadow: 0 0 8px rgba(239, 68, 68, 0.3); }
+.hm-progress.hm-progress-info .hm-progress-fill { background: var(--hm-info); box-shadow: 0 0 8px rgba(59, 130, 246, 0.3); }
 
 /* ── 状态指示器 ── */
 .hm-status { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; }
@@ -512,4 +546,52 @@ body {
       max-width: 1280px;
     }
   }
+}
+
+
+/* ── 互动按钮 ── */
+.hm-action-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: var(--hm-radius-full);
+  border: none; background: transparent; cursor: pointer;
+  font-size: 13px; color: var(--hm-gray-500); transition: all var(--hm-transition);
+}
+.hm-action-btn:hover { color: var(--hm-black); background: var(--hm-gray-50); }
+.hm-action-btn.liked { color: var(--hm-accent-pink); }
+.hm-action-btn.collected { color: var(--hm-warning); }
+.hm-action-btn.followed { color: var(--hm-success); }
+
+/* ── 未读提示 ── */
+.hm-unread-dot {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 8px; height: 8px; border-radius: var(--hm-radius-full);
+  background: var(--hm-error); flex-shrink: 0;
+}
+.hm-unread-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 20px; height: 20px; padding: 0 6px; border-radius: var(--hm-radius-full);
+  background: var(--hm-error); color: var(--hm-white);
+  font-size: 11px; font-weight: 700;
+}
+
+/* ── 聊天气泡 ── */
+.hm-chat-bubble {
+  max-width: 80%; padding: 12px 16px; border-radius: var(--hm-radius-lg);
+  word-wrap: break-word; animation: hm-fade-in 0.3s ease-out;
+}
+.hm-chat-bubble-self {
+  background: var(--hm-black); color: var(--hm-white); margin-left: auto;
+  border-bottom-right-radius: 4px;
+}
+.hm-chat-bubble-other {
+  background: var(--hm-gray-100); color: var(--hm-black); margin-right: auto;
+  border-bottom-left-radius: 4px;
+}
+
+/* ── 热度标签 ── */
+.hm-hot-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 10px; border-radius: var(--hm-radius-full);
+  background: linear-gradient(135deg, var(--hm-accent-pink), var(--hm-warning));
+  color: var(--hm-white); font-size: 11px; font-weight: 700;
 }
